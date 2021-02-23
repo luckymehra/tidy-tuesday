@@ -1,10 +1,10 @@
 ---
-title: "Wealth inequality in America"
+title: "Home ownership in America by race"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
 ## Load packages
@@ -14,20 +14,27 @@ if (!require(pacman)){
   install.packages('pacman')
 }
 
-pacman::p_load(dplyr,
+pacman::p_load(tidyverse,
                tidytuesdayR,
                readxl,
                janitor,
                here,
-               tidyr)
+               tidyr,
+               plotly,
+               htmlwidgets)
 ```
+
+### Home ownership by race
 
 ```{r}
 # get tidy tuesday data for the date 2021-02-09
-tuesdata <- tidytuesdayR::tt_load('2021-02-09')
+# tuesdata <- tidytuesdayR::tt_load('2021-02-09')
 
 # get home_ownership data
-home_owner <- tuesdata$home_owner
+# tuesdata$home_owner %>% 
+#   write_csv(file = here::here('2021-02-09', 'home_owner.csv'))
+
+home_owner <- read_csv(here::here('2021-02-09', 'home_owner.csv'))
 
 # The color-blind-friendly palette with black:
 cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -40,7 +47,10 @@ y_coord <- home_owner %>%
 home_owner_plot <- home_owner %>% 
   ggplot(mapping = aes(x = year, y = home_owner_pct)) +
   geom_line(mapping = aes(color = race),
-            size =1) +
+            size = 0.8) +
+  geom_point(mapping = aes(color = race),
+             shape = 21,
+             fill = 'white') +
   labs(x = 'Year',
        y = '',
        title = 'Home ownership in the US from 1976 to 2016') +
@@ -48,25 +58,25 @@ home_owner_plot <- home_owner %>%
   theme_bw(base_size = 14) +
   xlim(1975, 2021) +
   annotate('text', x = 2019, y = filter(y_coord, race == 'White')$home_owner_pct,
-           label = 'White') +
+           label = 'White', color = cbPalette[4]) +
   annotate('text', x = 2019, y = filter(y_coord, race == 'Black')$home_owner_pct,
-           label = 'Black') +
+           label = 'Black', color = cbPalette[2]) +
   annotate('text', x = 2019, y = filter(y_coord, race == 'Hispanic')$home_owner_pct,
-           label = 'Hispanic') +
+           label = 'Hispanic', color = cbPalette[3]) +
   theme(legend.position = 'none',
         panel.border = element_blank(),
         panel.grid.minor = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
   scale_y_continuous(labels = scales::percent, limits = c(0, 1))
 
-# install.packages('ggplot2')
-# library(ggplot2)
+ggplotly(home_owner_plot)
 
-ggsave(here::here('2021-02-09/plots', 'home_ownership.png'),
-       plot = home_owner_plot,
-       width = 8,
-       height = 5)
+# ggsave(here::here('2021-02-09/plots', 'home_ownership.png'),
+#        plot = home_owner_plot,
+#        width = 8,
+#        height = 5)
 
+# htmlwidgets::saveWidget(as_widget(ggplotly(home_owner_plot)), 
+#                         here::here('2021-02-09/plots', 'home-ownership-interactive.html'))
 ```
-
 
